@@ -28,6 +28,7 @@ using System.IO;
 using UnityEditor;
 using UnityEditor.Callbacks;
 using UnityEditor.iOS.Xcode;
+using UnityEngine;
 
 /// <summary>
 /// Adding this post build script to Unity project enables the flutter-unity-widget to access it
@@ -41,17 +42,24 @@ public static class XcodePostBuild
     /// </summary>
     private const string TouchedMarker = "https://github.com/snowballdigital/flutter-unity-view-widget";
 
-    [PostProcessBuild]
+    [PostProcessBuild(0)]
     public static void OnPostBuild(BuildTarget target, string pathToBuiltProject)
     {
-        if (target != BuildTarget.iOS)
+        if (ScriptBatch.FlutterBuildPending)
         {
-            return;
+            Debug.Log("Flutter Build... XCode Patch.");
+            if (target != BuildTarget.iOS)
+            {
+                return;
+            }
+
+            PatchUnityNativeCode(pathToBuiltProject);
+            UpdateUnityProjectFiles(pathToBuiltProject);
         }
-
-        PatchUnityNativeCode(pathToBuiltProject);
-
-        UpdateUnityProjectFiles(pathToBuiltProject);
+        else
+        {
+            Debug.Log("NOT a Flutter Build... skipping Flutter XCode Patch.");
+        }
     }
 
     /// <summary>
@@ -307,6 +315,35 @@ public static class XcodePostBuild
 
             return new string[] { line };
         });
+
+        inScope = false;
+        markerDetected = false;
+
+        // Modify inline GetAppController
+        EditCodeFile(path, line =>
+        {
+            inScope |= line.Contains("@selector(startUnity:)");
+
+            if (inScope && !markerDetected)
+            {
+                if (line.Trim() == "}")
+                {
+                    inScope = false;
+                    markerDetected = true;
+
+                    return new string[]
+                    {
+                        "        [self startUnity:application]; // Added by Etribe",
+                        "    }"
+                    };
+                }
+
+                return new string[] { "        // " + line.Trim() };
+            }
+
+            return new string[] { line };
+        });
+
 
         inScope = false;
         markerDetected = false;

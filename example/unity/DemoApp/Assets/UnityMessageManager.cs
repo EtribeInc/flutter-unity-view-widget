@@ -69,10 +69,10 @@ public class NativeAPI
 
 public class UnityMessageManager : MonoBehaviour
 {
-/* #if UNITY_IOS && !UNITY_EDITOR
+#if UNITY_IOS && !UNITY_EDITOR
     [DllImport("__Internal")]
     private static extern void onUnityMessage(string message);
-#endif */
+#endif
 
     public const string MessagePrefix = "@UnityMessage@";
 

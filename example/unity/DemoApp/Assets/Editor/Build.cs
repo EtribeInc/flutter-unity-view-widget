@@ -16,23 +16,20 @@ public class Build
     static readonly string androidExportPath = Path.GetFullPath(Path.Combine(ProjectPath, "../../android/UnityExport"));
     static readonly string iosExportPath = Path.GetFullPath(Path.Combine(ProjectPath, "../../ios/UnityExport"));
 
-    [MenuItem("Flutter/Export Android (Unity 2019.3.*) %&n", false, 1)]
+    MenuItem("Flutter/Export Android (Unity 2019.3.*) %&n", false, 1)]
     public static void DoBuildAndroidLibrary()
     {
         DoBuildAndroid(Path.Combine(apkPath, "unityLibrary"));
 
         // Copy over resources from the launcher module that are used by the library
         Copy(Path.Combine(apkPath + "/launcher/src/main/res"), Path.Combine(androidExportPath, "src/main/res"));
-    }
-
-    [MenuItem("Flutter/Export Android %&a", false, 2)]
-    public static void DoBuildAndroidLegacy()
-    {
-        DoBuildAndroid(Path.Combine(apkPath, Application.productName));
+        
+        Debug.Log("Android Flutter Build Complete: " + androidExportPath);
     }
 
     public static void DoBuildAndroid(String buildPath)
     {
+#pragma warning disable 0162
         if (Directory.Exists(apkPath))
             Directory.Delete(apkPath, true);
 
@@ -62,6 +59,9 @@ public class Build
         build_text = build_text.Replace("enableSplit = false", "enable false");
         build_text = build_text.Replace("enableSplit = true", "enable true");
         build_text = build_text.Replace("implementation fileTree(dir: 'libs', include: ['*.jar'])", "implementation project(':unity-classes')");
+        build_text = build_text.Replace("lintOptions", "buildTypes { profile { } }\n\n    lintOptions");
+        build_text = build_text.Replace("implementation(name: '", "implementation project(':");
+        build_text = build_text.Replace(", ext:'aar')", ")");
         build_text = Regex.Replace(build_text, @"\n.*applicationId '.+'.*\n", "\n");
         File.WriteAllText(build_file, build_text);
 
@@ -72,11 +72,13 @@ public class Build
         Regex regex = new Regex(@"<activity.*>(\s|\S)+?</activity>", RegexOptions.Multiline);
         manifest_text = regex.Replace(manifest_text, "");
         File.WriteAllText(manifest_file, manifest_text);
+#pragma warning restore 0162
     }
 
     [MenuItem("Flutter/Export IOS (Unity 2019.3.*) %&i", false, 3)]
     public static void DoBuildIOS()
     {
+#pragma warning disable 0162
         if (Directory.Exists(iosExportPath))
             Directory.Delete(iosExportPath, true);
 
@@ -91,7 +93,14 @@ public class Build
         );
 
         if (report.summary.result != BuildResult.Succeeded)
+        {
             throw new Exception("Build failed");
+        }
+        else
+        {
+            Debug.Log("iOS Flutter Build Complete: " + iosExportPath);
+        }
+#pragma warning restore 0162
     }
 
     static void Copy(string source, string destinationPath)
