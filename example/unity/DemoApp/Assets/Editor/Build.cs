@@ -16,7 +16,7 @@ public class Build
     static readonly string androidExportPath = Path.GetFullPath(Path.Combine(ProjectPath, "../../android/UnityExport"));
     static readonly string iosExportPath = Path.GetFullPath(Path.Combine(ProjectPath, "../../ios/UnityExport"));
 
-    MenuItem("Flutter/Export Android (Unity 2019.3.*) %&n", false, 1)]
+    MenuItem("Flutter/Export Android %&n", false, 1)]
     public static void DoBuildAndroidLibrary()
     {
         DoBuildAndroid(Path.Combine(apkPath, "unityLibrary"));
@@ -75,7 +75,7 @@ public class Build
 #pragma warning restore 0162
     }
 
-    [MenuItem("Flutter/Export IOS (Unity 2019.3.*) %&i", false, 3)]
+    [MenuItem("Flutter/Export IOS %&i", false, 3)]
     public static void DoBuildIOS()
     {
 #pragma warning disable 0162
