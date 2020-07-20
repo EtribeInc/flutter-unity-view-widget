@@ -1,5 +1,6 @@
 #include <csignal>
 #import <UIKit/UIKit.h>
+#include <cstdio>
 #import "UnityUtils.h"
 
 #include <UnityFramework/UnityFramework.h>
@@ -50,14 +51,18 @@ extern "C" void InitUnity()
     if (unity_inited) {
         return;
     }
+
+    if (g_argc == 0) {
+        printf("InitArgs was not called before trying to InitUnity");
+    }
+
     unity_inited = true;
 
     ufw = UnityFrameworkLoad();
-
     [ufw setDataBundleId: "com.unity3d.framework"];
     [ufw frameworkWarmup: g_argc argv: g_argv];
     // [ufw setExecuteHeader: &_mh_execute_header];
-    // [ufw runEmbeddedWithArgc: gArgc argv: gArgv appLaunchOpts: appLaunchOpts];
+    //[ufw runEmbeddedWithArgc: gArgc argv: gArgv appLaunchOpts: appLaunchOpts];
 }
 
 extern "C" void UnityPostMessage(NSString* gameObject, NSString* methodName, NSString* message)
